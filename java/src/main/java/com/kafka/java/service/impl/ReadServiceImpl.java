@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.type.CollectionType;
 import com.kafka.java.client.JsonPlaceHolderClient;
 import com.kafka.java.dto.response.JsonPlaceHolderResponse;
+import com.kafka.java.exception.ErrorCode;
 import com.kafka.java.service.ReadService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,7 +12,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.kafka.core.KafkaTemplate;
 import org.springframework.stereotype.Service;
-
 import java.io.IOException;
 import java.util.Collections;
 import java.util.List;
@@ -58,9 +58,9 @@ public class ReadServiceImpl implements ReadService {
 
             // Send to Kafka if list is not empty
             if (!res.isEmpty()) {
-                for(int i=0; i<res.size(); i++) {
+                for (int i = 0; i < res.size(); i++) {
                     JsonPlaceHolderResponse json = res.get(i);
-                   // String message = "userId = "+ String.valueOf(json.getUserId()) +" id = "+ String.valueOf(json.getId()) +" title = "+ json.getTitle() +" body = "+ json.getBody();
+                    // String message = "userId = "+ String.valueOf(json.getUserId()) +" id = "+ String.valueOf(json.getId()) +" title = "+ json.getTitle() +" body = "+ json.getBody();
                     String message = String.format("userId = %d, id = %d, title = %s, body = %s",
                             json.getUserId(), json.getId(), json.getTitle(), json.getBody());
                     kafkaTemplate.send("json-place-holder", "kafka-key", message);
@@ -68,6 +68,7 @@ public class ReadServiceImpl implements ReadService {
                 }
             } else {
                 LOGGER.warn("Received empty list from JSON response");
+                throw new RuntimeException(ErrorCode.DATA_NOT_EXIST_CODE);
             }
 
             return res;
